@@ -47,6 +47,7 @@ RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
 
 # Set up catkin repo 
 RUN mkdir -p ~/catkin_ws
+RUN echo "RUN FROM HERE PLEASE"
 #https://smartystreets.com/blog/2018/09/private-dependencies-in-docker-and-go/
 RUN git config --global url."git@github.com:".insteadOf https://github.com/
 RUN git clone -b simulation --recursive "$git_repo" ~/catkin_ws/src/
@@ -55,7 +56,12 @@ RUN git clone -b simulation --recursive "$git_repo" ~/catkin_ws/src/
 #Install package dependencies
 RUN apt-get update -qq
 RUN /bin/bash -c "cd ~/catkin_ws; rosdep install --from-paths src --ignore-src -r -y"
+# Add missing dependency
+RUN apt-get install -y ros-melodic-eband-local-planner
+
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
 
 #Environment setup
 
