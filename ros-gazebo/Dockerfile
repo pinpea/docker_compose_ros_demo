@@ -29,10 +29,10 @@ RUN apt-get update -qq && apt-get install -y \
     vim \
     gdb \
     wget \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 #Set up the custom_jackal packages 
-# Authorize SSH Host
+    # Authorize SSH Host
 RUN mkdir -p /root/.ssh && \
     chmod 0700 /root/.ssh && \
     ssh-keyscan github.com > /root/.ssh/known_hosts
@@ -44,21 +44,23 @@ RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
     chmod 600 /root/.ssh/id_rsa.pub
 
 # RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
+# Downloading the Gazebo models
+RUN mkdir -p ~/.gazebo/
+RUN /bin/bash -c "echo 'Get models for gazebo, wget set to quiet, THIS MAY TAKE SOME TIME'; wget https://bitbucket.org/osrf/gazebo_models/get/e6d645674e8a.zip --quiet --directory-prefix ~/.gazebo" 
+RUN /bin/bash -c "echo 'Unzipping Gazebo models'; unzip -qq ~/.gazebo/e6d645674e8a.zip -d ~/.gazebo/"
+RUN mv ~/.gazebo/osrf-gazebo_models-e6d645674e8a ~/.gazebo/models/
 
 # Set up catkin repo 
 RUN mkdir -p ~/catkin_ws
+#https://smartystreets.com/blog/2018/09/private-dependencies-in-docker-and-go/
+RUN git config --global url."git@github.com:".insteadOf https://github.com/
 RUN git clone -b simulation --recursive git@github.com:EEEManchester/jackal_catkin_src.git ~/catkin_ws/src/
 # RUN /bin/bash -c "cd ~/catkin_ws/src/ ; git checkout simulation"
 
-
-# Downloading the Gazebo models
-RUN mkdir -p ~/.gazebo/
-RUN echo "Get models for gazebo, wget set to quiet, this may take some time"
-RUN wget https://bitbucket.org/osrf/gazebo_models/get/e6d645674e8a.zip --quiet --directory-prefix ~/.gazebo  
-RUN unzip ~/.gazebo/e6d645674e8a.zip -d ~/.gazebo/
-RUN mv ~/.gazebo/osrf-gazebo_models-e6d645674e8a ~/.gazebo/models/
-
+#Install package dependencies
+RUN apt-get update
 RUN /bin/bash -c "cd ~/catkin_ws; rosdep install --from-paths src --ignore-src -r -y"
+RUN     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 #Environment setup
 
