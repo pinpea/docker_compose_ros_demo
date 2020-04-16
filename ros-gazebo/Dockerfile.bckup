@@ -1,10 +1,9 @@
-FROM osrf/ros:melodic-desktop-full
+FROM ubuntu
 MAINTAINER github/pinpea
 
 ARG ssh_prv_key
 ARG ssh_pub_key
 ARG git_repo
-
 
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN apt-get update
@@ -13,19 +12,18 @@ RUN apt-get install -y xserver-xorg-video-all
 RUN apt-get install -y gnupg2
 
 #For ROS Melodic
-# RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu bionic main" > /etc/apt/sources.list.d/ros-latest.list'
-# RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-# RUN apt-get update
-# RUN apt-get install -y ros-melodic-desktop-full
-# RUN apt-get install python-rosdep
-# RUN /bin/bash -c "source /opt/ros/melodic/setup.bash; rosdep init; rosdep update"
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu bionic main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+RUN apt-get update
+RUN apt-get install -y ros-melodic-desktop-full
+RUN apt-get install python-rosdep
+RUN /bin/bash -c "source /opt/ros/melodic/setup.bash; rosdep init; rosdep update"
 
 #Set up non-ROS dependencies - gdb is for move_base_flex, wget is to get Gazebo models
 
 RUN apt-get update -qq && apt-get install -y \
     git\
     ssh \
-    openssh-client \
     vim \
     gdb \
     wget \
@@ -43,22 +41,19 @@ RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
     chmod 600 /root/.ssh/id_rsa && \
     chmod 600 /root/.ssh/id_rsa.pub
 
-# RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-
 # Set up catkin repo 
 RUN mkdir -p ~/catkin_ws
-RUN git clone -b simulation --recursive git@github.com:EEEManchester/jackal_catkin_src.git ~/catkin_ws/src/
-# RUN /bin/bash -c "cd ~/catkin_ws/src/ ; git checkout simulation"
-
+RUN git clone --recursive git@github.com:EEEManchester/jackal_catkin_src.git ~/catkin_ws/src/
+RUN cd ~/catkin_ws/src
+RUN git checkout simulation
+RUN cd ~/catkin_ws
+RUN /bin/bash -c "rosdep install --from-paths src --ignore-src -r -y"
 
 # Downloading the Gazebo models
 RUN mkdir -p ~/.gazebo/
-RUN echo "Get models for gazebo, wget set to quiet, this may take some time"
-RUN wget https://bitbucket.org/osrf/gazebo_models/get/e6d645674e8a.zip --quiet --directory-prefix ~/.gazebo  
+RUN wget https://bitbucket.org/osrf/gazebo_models/get/e6d645674e8a.zip -P ~/.gazebo
 RUN unzip ~/.gazebo/e6d645674e8a.zip -d ~/.gazebo/
 RUN mv ~/.gazebo/osrf-gazebo_models-e6d645674e8a ~/.gazebo/models/
-
-RUN /bin/bash -c "cd ~/catkin_ws; rosdep install --from-paths src --ignore-src -r -y"
 
 #Environment setup
 
