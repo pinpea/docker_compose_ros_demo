@@ -1,0 +1,109 @@
+# Pairing a Xbox One controller on Ubuntu 18.04 for ROS
+
+## To pair the controller 
+
+From [StackExchange post](https://askubuntu.com/questions/1038001/xbox-one-controller-ubuntu-18-04):
+
+```bash
+#Install sysfsutils
+sudo apt install sysfsutils
+
+#Edit /etc/sysfs.conf (as root), add this line at the end of the file:
+/module/bluetooth/parameters/disable_ertm=1
+#Save changes and restart
+```
+
+If you have previously added the xbox controller using the Ubuntu Bluetooth interface or bluetoothctl, remove the device.
+Then connect to the xbox controller, I used the Ubuntu Bluetooth devices menu in the settings this time.
+
+------------
+
+## Installing the customised Xboxdrv driver
+
+Using xboxdrv driver from [ubuntu_xboxdrv repo](https://github.com/raelgc/ubuntu_xboxdrv), which I found through [this blog post](https://www.maketecheasier.com/set-up-xbox-one-controller-ubuntu/)
+This driver starts on boot and can be reloaded etc.
+
+```bash
+sudo apt-add-repository -y ppa:rael-gc/ubuntu-xboxdrv
+sudo apt-get update
+sudo apt-get install ubuntu-xboxdrv
+sudo systemctl enable xboxdrv.service
+sudo systemctl start xboxdrv.service   
+sudo systemctl status xboxdrv.service
+sudo systemctl stop xboxdrv.service #etc
+```
+
+------------
+
+## Config
+
+Once installed, key-mappings can be set in the file at  ```/etc/default/xboxdrv/``` 
+
+For example:
+
+```bash
+[xboxdrv]
+silent=true
+deadzone=6000
+dpad-as-button=true
+trigger-as-button=true
+
+[ui-axismap]
+x2=REL_X:10
+y2=REL_Y:-10
+x1=KEY_A:KEY_D
+y1=KEY_W:KEY_S
+
+[ui-buttonmap]
+a=KEY_LEFTSHIFT
+b=BTN_C
+x=BTN_EXTRA
+y=KEY_C
+
+[ui-buttonmap]
+lb=BTN_RIGHT
+rb=KEY_SPACE
+
+[ui-buttonmap]
+lt=KEY_Z
+rt=BTN_LEFT
+
+[ui-buttonmap]
+dl=KEY_4
+dr=KEY_2
+du=REL_WHEEL:-1:150
+dd=REL_WHEEL:1:150
+
+[ui-buttonmap]
+back=KEY_TAB
+start=KEY_ESC
+
+# EOF #
+```
+See  [Manual page for ubuntu-xboxdrv](https://pingus.seul.org/~grumbel/xboxdrv/xboxdrv.html)] for more details
+NB. [Manual page for the original xboxdrv](http://manpages.ubuntu.com/manpages/bionic/man1/xboxdrv.1.html)
+
+----------
+
+## Check Xbox output 
+
+E.g., using :
+
+```
+jstest-gtk
+```
+My controller was on ```/dev/input/js4```
+
+
+## Running the Joy Node in ROS 
+
+Edit teleop_twist_joy teleop.launch or pass a commandline parameter for ```joy_dev```.
+(@TODO: udev rule to map to this input)
+
+Finally to run the joy node, 
+
+```bash
+roslaunch teleop_twist_joy teleop.launch
+```
+
+Seems ok :)

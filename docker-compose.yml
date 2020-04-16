@@ -1,0 +1,65 @@
+# in terminal, first run xhost +
+version: "2"
+# networks:
+#   default:
+#     external:
+#       name: rosdocker
+services:
+  roscore:
+    image: ros:melodic
+    command: ["roscore"]
+    environment:
+      ROS_IP: "172.19.0.3"
+      ROS_HOSTNAME: "roscore"
+
+  ros-melodic-gazebo:
+    image: ros-melodic-gazebo
+    build: ./ros-gazebo
+    environment:
+      DISPLAY: "unix:0.0"
+      ROS_IP: "172.19.0.4"
+      # ROS_MASTER_URI: "http://roscore:11311/"
+      ROS_MASTER_URI: "http://roscore:11311/"
+    volumes:
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    command:
+      [
+        "bash",
+        "-c",
+        "source /opt/ros/melodic/setup.bash; sleep 5; roslaunch jackal_gazebo jackal_world.launch",
+      ]
+    devices:
+      - "/dev/input/js4:/dev/input/ds4x"
+    # command: ["roslaunch", "jackal_gazebo", "jackal_world.launch"]
+    depends_on:
+      - roscore
+    privileged: true
+  # ros-melodic-teleop:
+  #   image: ros-melodic-teleop
+  #   build: ./ros-joystick
+  #   environment:
+  #     ROS_MASTER_URI: "http://roscore:11311/"
+  #   command:
+  #     [
+  #       "bash",
+  #       "-c",
+  #       "source /opt/ros/melodic/setup.bash ;sleep 6; roslaunch jackal_control teleop.launch",
+  #     ]
+  #   devices:
+  #     - "/dev/input/js4:/dev/input/ds4x"
+  # depends_on:
+  #   - ros-melodic-gazebo
+  ros-melodic-rviz:
+    image: ros-melodic-gazebo
+    privileged: true
+    # build: ./ros-rviz
+    environment:
+      DISPLAY: "$DISPLAY"
+      # QT_X11_NO_MITSHM: "1"
+      ROS_IP: "172.19.0.5"
+      ROS_MASTER_URI: "http://roscore:11311/"
+    volumes:
+      - "/tmp/.X11-unix:/tmp/.X11-unix"
+    command: ["bash", "-c", "source /opt/ros/melodic/setup.bash; sleep 5; rviz"]
+    depends_on:
+      - roscore
