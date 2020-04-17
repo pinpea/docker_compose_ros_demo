@@ -1,6 +1,8 @@
 FROM osrf/ros:melodic-desktop-full
 MAINTAINER github/pinpea
 
+#docker build -t melodic_gazebo_jackal --build-arg ssh_prv_key="$(cat ~/.ssh/id_rsa_eee)" --build-arg ssh_pub_key="$(cat ~/.ssh/id_rsa_eee.pub)" --build-arg git_repo="git@github.com:EEEManchester/jackal_catkin_src.git" .
+
 ARG ssh_prv_key
 ARG ssh_pub_key
 ARG git_repo
@@ -47,7 +49,8 @@ RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
 
 # Set up catkin repo 
 RUN mkdir -p ~/catkin_ws
-RUN echo "RUN FROM HERE PLEASE"
+RUN echo "RUN FROM HERE PLEASE!!"
+#https://stackoverflow.com/questions/36996046/how-to-prevent-dockerfile-caching-git-clone
 #https://smartystreets.com/blog/2018/09/private-dependencies-in-docker-and-go/
 RUN git config --global url."git@github.com:".insteadOf https://github.com/
 RUN git clone -b simulation --recursive "$git_repo" ~/catkin_ws/src/
@@ -68,7 +71,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 #To prevent  Error in REST request ;  libcurl: (51) SSL: no alternative certificate subject name matches target host name 'api.ignitionfuel.org'
 COPY ignition_conf.yaml /root/.ignition/fuel/config.yaml
 
-RUN /bin/bash -c "cd ~/catkin_ws/ ; source /opt/ros/melodic/setup.bash;  catkin init ; catkin build"
+RUN /bin/bash -c "cd ~/catkin_ws/ ; source /opt/ros/melodic/setup.bash;  catkin init ; catkin build; source ~/catkin_ws/devel/setup.bash"
 
 # CMD ["roslaunch", "jackal_gazebo", "jackal_world.launch"]
 
