@@ -1,65 +1,94 @@
-# in terminal, first run xhost +
 version: "2"
-# networks:
-#   default:
-#     external:
-#       name: rosdocker
-services:
-  roscore:
-    image: ros:melodic
-    command: ["roscore"]
-    environment:
-      ROS_IP: "172.19.0.3"
-      ROS_HOSTNAME: "roscore"
 
-  ros-melodic-gazebo:
-    image: ros-melodic-gazebo
-    build: ./ros-gazebo
+networks:
+  ros:
+    driver: bridge
+
+services:
+  ros-master:
+    image: ros:kinetic-ros-core
+    command: stdbuf -o L roscore
+    networks:
+      - ros
+    restart: always
+
+  talker:
+    image: ros:kinetic-ros-core
+    depends_on:
+      - ros-master
     environment:
-      DISPLAY: "unix:0.0"
-      ROS_IP: "172.19.0.4"
-      # ROS_MASTER_URI: "http://roscore:11311/"
-      ROS_MASTER_URI: "http://roscore:11311/"
-    volumes:
-      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+      - "ROS_MASTER_URI=http://ros-master:11311"
+      - "ROS_HOSTNAME=talker"
+    command: stdbuf -o L rostopic pub /chatter std_msgs/String "hello" -r 1
+    networks:
+      - ros
+    restart: always
+
+  waypoint-planner:
+    image: waypoint-planner
+    container_name: waypoint_planner
+    depends_on:
+      - ros-master
+    environment:
+      - "ROS_MASTER_URI=http://ros-master:11311"
+      - "ROS_HOSTNAME=waypoint_planner"
+      - "DISPLAY"
+      - "QT_X11_NO_MITSHM=1"
+      - "XAUTHORITY=/tmp/.docker.xauth"
     command:
       [
         "bash",
         "-c",
-        "source /opt/ros/melodic/setup.bash; sleep 5; roslaunch jackal_gazebo jackal_world.launch",
+        "source /root/home/catkin_ws/devel/setup.bash ; roslaunch waypoint_planner waypoint_planner_headless.launch",
       ]
-    devices:
-      - "/dev/input/js4:/dev/input/ds4x"
-    # command: ["roslaunch", "jackal_gazebo", "jackal_world.launch"]
+    networks:
+      - ros
+    restart: always
+  viz:
+    image: osrf/ros:kinetic-desktop-full
+    container_name: ros_visualizer
     depends_on:
-      - roscore
-    privileged: true
-  # ros-melodic-teleop:
-  #   image: ros-melodic-teleop
-  #   build: ./ros-joystick
-  #   environment:
-  #     ROS_MASTER_URI: "http://roscore:11311/"
-  #   command:
-  #     [
-  #       "bash",
-  #       "-c",
-  #       "source /opt/ros/melodic/setup.bash ;sleep 6; roslaunch jackal_control teleop.launch",
-  #     ]
-  #   devices:
-  #     - "/dev/input/js4:/dev/input/ds4x"
-  # depends_on:
-  #   - ros-melodic-gazebo
-  ros-melodic-rviz:
-    image: ros-melodic-gazebo
-    privileged: true
-    # build: ./ros-rviz
+      - ros-master
+    networks:
+      - ros
     environment:
-      DISPLAY: "$DISPLAY"
-      # QT_X11_NO_MITSHM: "1"
-      ROS_IP: "172.19.0.5"
-      ROS_MASTER_URI: "http://roscore:11311/"
+      - "ROS_MASTER_URI=http://ros-master:11311"
+      - "ROS_HOSTNAME=ros_visualizer"
+      - "DISPLAY"
+      - "QT_X11_NO_MITSHM=1" #fix some QT bugs
+    #share your user to the container in order to access your x11
+    user: 1000:1000 #adapt as needed!
     volumes:
-      - "/tmp/.X11-unix:/tmp/.X11-unix"
-    command: ["bash", "-c", "source /opt/ros/melodic/setup.bash; sleep 5; rviz"]
+      #share your x11 socket and permissions to the container
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /etc/group:/etc/group:ro
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
+      - /etc/sudoers.d:/etc/sudoers.d:ro
+      - /home/$USER/docker_for_simulations/:/home/$USER:rw #share your home with write permissions
+    command: rosrun rviz rviz -d /home/$USER/waypoint_planner/rviz/rviz_waypoint_planner.cfg.rviz
+
+  ros-rqt:
+    image: osrf/ros:kinetic-desktop-full
+    container_name: ros_rqt
     depends_on:
-      - roscore
+      - ros-master
+    networks:
+      - ros
+    environment:
+      - "ROS_MASTER_URI=http://ros-master:11311"
+      - "ROS_HOSTNAME=ros_rqt"
+      - "DISPLAY"
+      - "QT_X11_NO_MITSHM=1" #fix some QT bugs
+      - "ROS_LOG_DIR=/home/$USER/.ros/log"
+    #share your user to the container in order to access your x11
+    user: 1000:1000 #adapt as needed!
+    volumes:
+      #share your x11 socket and permissions to the container
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /etc/group:/etc/group:ro
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
+      - /etc/sudoers.d:/etc/sudoers.d:ro
+      - /home/$USER/docker_for_simulations/:/home/$USER:rw #share your home with write permissions
+    command: rqt

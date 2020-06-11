@@ -61,7 +61,7 @@ RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
 
 #could also use copy
 RUN mkdir -p ~/catkin_ws
-RUN git clone --recursive git@github.com:EEEManchester/carma_simulation.git ~/catkin_ws
+RUN git clone --recursive git@github.com:git_user/git_repo.git ~/catkin_ws
 
 ## Other Useful commands
 

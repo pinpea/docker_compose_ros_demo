@@ -1,0 +1,21 @@
+[rospy.client][INFO] 2020-06-10 12:38:56,893: init_node, name[/rqt_gui_py_node_1], pid[1]
+[xmlrpc][INFO] 2020-06-10 12:38:56,893: XML-RPC server binding to 0.0.0.0:0
+[xmlrpc][INFO] 2020-06-10 12:38:56,893: Started XML-RPC server [http://ros_rqt:34139/]
+[rospy.init][INFO] 2020-06-10 12:38:56,894: ROS Slave URI: [http://ros_rqt:34139/]
+[rospy.impl.masterslave][INFO] 2020-06-10 12:38:56,894: _ready: http://ros_rqt:34139/
+[rospy.registration][INFO] 2020-06-10 12:38:56,894: Registering with master node http://ros-master:11311
+[xmlrpc][INFO] 2020-06-10 12:38:56,894: xml rpc node: starting XML-RPC server
+[rospy.init][INFO] 2020-06-10 12:38:56,994: registered with master
+[rospy.rosout][INFO] 2020-06-10 12:38:56,994: initializing /rosout core topic
+[rospy.rosout][INFO] 2020-06-10 12:38:56,998: connected to core topic /rosout
+[rospy.simtime][INFO] 2020-06-10 12:38:57,000: /use_sim_time is not set, will not subscribe to simulated time [/clock] topic
+[rospy.internal][INFO] 2020-06-10 12:38:57,294: topic[/rosout] adding connection to [/rosout], count 0
+[rospy.internal][INFO] 2020-06-10 12:39:02,263: topic[/waypoint_planner/parameter_updates] adding connection to [http://waypoint_planner:39155/], count 0
+[rospy.internal][INFO] 2020-06-10 12:39:02,264: topic[/waypoint_planner/parameter_descriptions] adding connection to [http://waypoint_planner:39155/], count 0
+[rospy.internal][INFO] 2020-06-10 12:39:27,061: topic impl's ref count is zero, deleting topic /waypoint_planner/parameter_descriptions...
+[rospy.internal][INFO] 2020-06-10 12:39:27,062: topic[/waypoint_planner/parameter_descriptions] removing connection to http://waypoint_planner:39155/
+[rospy.internal][INFO] 2020-06-10 12:39:27,065: topic impl's ref count is zero, deleting topic /waypoint_planner/parameter_updates...
+[rospy.internal][INFO] 2020-06-10 12:39:27,065: topic[/waypoint_planner/parameter_updates] removing connection to http://waypoint_planner:39155/
+[rospy.core][INFO] 2020-06-10 12:39:27,078: signal_shutdown [atexit]
+[rospy.internal][INFO] 2020-06-10 12:39:27,084: topic[/rosout] removing connection to /rosout
+[rospy.impl.masterslave][INFO] 2020-06-10 12:39:27,085: atexit

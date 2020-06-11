@@ -49,7 +49,7 @@ RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
 
 # Set up catkin repo 
 RUN mkdir -p ~/catkin_ws
-RUN echo "RUN FROM HERE PLEASE!!"
+ARG cache_date=2020-04-17:19:21
 #https://stackoverflow.com/questions/36996046/how-to-prevent-dockerfile-caching-git-clone
 #https://smartystreets.com/blog/2018/09/private-dependencies-in-docker-and-go/
 RUN git config --global url."git@github.com:".insteadOf https://github.com/
@@ -64,15 +64,17 @@ RUN apt-get install -y ros-melodic-eband-local-planner
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-
-
 #Environment setup
 
 #To prevent  Error in REST request ;  libcurl: (51) SSL: no alternative certificate subject name matches target host name 'api.ignitionfuel.org'
 COPY ignition_conf.yaml /root/.ignition/fuel/config.yaml
+COPY ros_entrypoint.sh /root/
 
-RUN /bin/bash -c "cd ~/catkin_ws/ ; source /opt/ros/melodic/setup.bash;  catkin init ; catkin build; source ~/catkin_ws/devel/setup.bash"
+ENV CARMA=0
+RUN /bin/bash -c "cd ~/catkin_ws/ ; source /opt/ros/melodic/setup.bash;  catkin init ; catkin build ; source ~/catkin_ws/devel/setup.bash"
 
-# CMD ["roslaunch", "jackal_gazebo", "jackal_world.launch"]
+# ENTRYPOINT [ "/root/ros-entrypoint.sh" ]
+
+# CMD ["roslaunch", "custom_jackal_gazebo", "jackal_world.launch"]
 
 

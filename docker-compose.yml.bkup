@@ -1,0 +1,63 @@
+# in terminal, first run xhost +
+version: "2"
+services:
+  rosmaster:
+    image: ros:melodic
+    container_name: rosmaster
+    environment:
+      ROS_IP: "172.19.0.3"
+      ROS_HOSTNAME: "rosmaster"
+      command: []
+    ports:
+      - "1311:1311"
+
+  ros-melodic-gazebo:
+    image: melodic-gazebo-jackal:latest
+    container_name: jackal
+    environment:
+      DISPLAY: "unix:0.0"
+      ROS_HOSTNAME: jackal
+      ROS_MASTER_URI: "http://rosmaster:11311/"
+    volumes:
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    devices:
+      - "/dev/input/js4:/dev/input/ds4x"
+    command: roslaunch custom_jackal_gazebo jackal_world.launch
+    depends_on:
+      - rosmaster
+    privileged: true
+
+  # waypoint-planner:
+  #   image: melodic-gazebo-jackal:latest
+  #   environment:
+  #     DISPLAY: "unix:0.0"
+  #     ROS_IP: "172.19.0.5"
+  #     ROS_MASTER_URI: "http://rosmaster:11311/"
+  #   volumes:
+  #     - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+  #   command: ["roslaunch", "waypoint_planner", "waypoint_planner_sim.launch"]
+  #   depends_on:
+  #     - rosmaster
+  #   privileged: true
+
+  cartographer:
+    image: cartographer
+    container_name: cartographer
+    hostname: cartographer
+    environment:
+      - "ROS_HOSTNAME=cartographer"
+      - "ROS_MASTER_URI=http://rosmaster:11311/"
+    depends_on:
+      - rosmaster
+  # ros-melodic-rviz:
+  #   image: melodic-gazebo-jackal:latest
+  #   privileged: true
+  #   environment:
+  #     DISPLAY: "$DISPLAY"
+  #     ROS_IP: "172.19.0.5"
+  #     ROS_MASTER_URI: "http://rosmaster:11311/"
+  #   volumes:
+  #     - "/tmp/.X11-unix:/tmp/.X11-unix"
+  #   command: ["bash", "-c", "source /opt/ros/melodic/setup.bash; sleep 5; rviz"]
+  #   depends_on:
+  #     - rosmaster
